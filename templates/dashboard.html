@@ -1,132 +1,611 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Police Dashboard</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Cyber Investigation Dashboard</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
 </head>
+
 <body class="bg-light">
 
-<div class="container mt-5">
+<div class="container-fluid py-4">
 
-    <h1 class="text-center text-primary mb-4">
-        🚔 Police Investigation Dashboard
+    <h1 class="text-center text-primary fw-bold mb-1">
+        <i class="bi bi-shield-lock-fill"></i>
+        AI Cyber Investigation Dashboard
     </h1>
 
-    <div class="row mb-4">
+    <p class="text-center text-muted mb-4">
+        Prakasam Police Hackathon 2026
+    </p>
 
-        <div class="col-md-4">
-            <div class="card text-center shadow">
+    <!-- KPI Cards -->
+
+    <div class="row g-4">
+
+        <div class="col-md-3">
+
+            <div class="card shadow border-0 text-center">
+
                 <div class="card-body">
-                    <h5>Total Profiles</h5>
-                    <h2>{{ profiles|length }}</h2>
+
+                    <i class="bi bi-folder2-open display-4 text-primary"></i>
+
+                    <h5 class="mt-3">Total Cases</h5>
+
+                    <h2>{{ total_cases }}</h2>
+
                 </div>
+
             </div>
+
         </div>
 
-        <div class="col-md-4">
-            <div class="card text-center shadow">
+        <div class="col-md-3">
+
+            <div class="card shadow border-0 text-center">
+
                 <div class="card-body">
 
-                    <h5>High Risk Profiles</h5>
+                    <i class="bi bi-check-circle-fill display-4 text-success"></i>
 
-                    <h2 class="text-danger">
-                        {% set count = namespace(value=0) %}
-                        {% for p in profiles %}
-                            {% if p[3] == "High Risk" %}
-                                {% set count.value = count.value + 1 %}
-                            {% endif %}
-                        {% endfor %}
-                        {{ count.value }}
-                    </h2>
+                    <h5 class="mt-3">Trusted</h5>
+
+                    <h2>{{ trusted }}</h2>
 
                 </div>
+
             </div>
+
         </div>
 
-        <div class="col-md-4">
-            <div class="card text-center shadow">
+        <div class="col-md-3">
+
+            <div class="card shadow border-0 text-center">
+
                 <div class="card-body">
 
-                    <h5>Trusted Profiles</h5>
+                    <i class="bi bi-exclamation-triangle-fill display-4 text-warning"></i>
 
-                    <h2 class="text-success">
-                        {% set trusted = namespace(value=0) %}
-                        {% for p in profiles %}
-                            {% if p[3] == "Trusted" %}
-                                {% set trusted.value = trusted.value + 1 %}
-                            {% endif %}
-                        {% endfor %}
-                        {{ trusted.value }}
-                    </h2>
+                    <h5 class="mt-3">Medium Risk</h5>
+
+                    <h2>{{ medium }}</h2>
 
                 </div>
+
             </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card shadow border-0 text-center">
+
+                <div class="card-body">
+
+                    <i class="bi bi-x-octagon-fill display-4 text-danger"></i>
+
+                    <h5 class="mt-3">High Risk</h5>
+
+                    <h2>{{ high }}</h2>
+
+                </div>
+
+            </div>
+
         </div>
 
     </div>
 
-    <div class="card shadow">
+    <!-- Average Trust Score -->
+
+    <div class="card shadow border-0 mt-4">
 
         <div class="card-body">
 
-            <h3>Analyzed Profiles</h3>
+            <h4 class="mb-3">
+                Average Digital Trust Score
+            </h4>
 
-            <table class="table table-striped table-hover">
+            <div class="progress" style="height:30px;">
 
-                <thead class="table-dark">
-                    <tr>
-                        <th>Username</th>
-                        <th>Display Name</th>
-                        <th>Trust Score</th>
-                        <th>Category</th>
-                    </tr>
-                </thead>
+                <div
+                    class="progress-bar bg-success"
+                    role="progressbar"
+                    style="width: {{ average_score }}%;"
+                >
 
-                <tbody>
+                    {{ average_score }}%
 
-                {% for profile in profiles %}
-                    <tr>
-                        <td>{{ profile[0] }}</td>
-                        <td>{{ profile[1] }}</td>
-                        <td>{{ profile[2] }}</td>
+                </div>
 
-                        <td>
-                            {% if profile[3] == "Trusted" %}
-                                <span class="badge bg-success">
-                                    {{ profile[3] }}
-                                </span>
-
-                            {% elif profile[3] == "Medium Risk" %}
-                                <span class="badge bg-warning text-dark">
-                                    {{ profile[3] }}
-                                </span>
-
-                            {% else %}
-                                <span class="badge bg-danger">
-                                    {{ profile[3] }}
-                                </span>
-                            {% endif %}
-                        </td>
-
-                    </tr>
-                {% endfor %}
-
-                </tbody>
-
-            </table>
+            </div>
 
         </div>
 
     </div>
 
-    <div class="mt-4">
-        <a href="/" class="btn btn-primary">
-            Analyze New Profile
-        </a>
+    <!-- Search -->
+
+    <div class="card shadow border-0 mt-4">
+
+        <div class="card-body">
+
+            <input
+                type="text"
+                id="searchInput"
+                class="form-control"
+                placeholder="🔍 Search Username..."
+                onkeyup="searchTable()"
+            >
+
+        </div>
+
+    </div>
+    <!-- Charts -->
+
+    <div class="row mt-4">
+
+        <!-- Pie Chart -->
+
+        <div class="col-lg-5">
+
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-primary text-white">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-pie-chart-fill"></i>
+                        Risk Distribution
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <canvas id="riskChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Bar Chart -->
+
+        <div class="col-lg-7">
+
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-success text-white">
+
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart-fill"></i>
+                        Investigation Analytics
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <canvas id="analyticsChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-</div>
+    <!-- Investigation Summary -->
+
+    <div class="row mt-4">
+
+        <div class="col-md-4">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-shield-check display-5 text-success"></i>
+
+                    <h5 class="mt-3">
+                        Trusted Profiles
+                    </h5>
+
+                    <h2 class="text-success">
+                        {{ trusted }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-exclamation-circle display-5 text-warning"></i>
+
+                    <h5 class="mt-3">
+                        Medium Risk
+                    </h5>
+
+                    <h2 class="text-warning">
+                        {{ medium }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body text-center">
+
+                    <i class="bi bi-bug-fill display-5 text-danger"></i>
+
+                    <h5 class="mt-3">
+                        High Risk
+                    </h5>
+
+                    <h2 class="text-danger">
+                        {{ high }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Recent Investigations -->
+
+    <div class="card shadow border-0 mt-4">
+
+        <div class="card-header bg-dark text-white">
+
+            <h4 class="mb-0">
+
+                <i class="bi bi-search"></i>
+
+                Recent Investigation Records
+
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered align-middle" id="profileTable">
+
+                    <thead class="table-primary">
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Username</th>
+
+                            <th>Display Name</th>
+
+                            <th>Trust Score</th>
+
+                            <th>Risk Category</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for profile in profiles %}
+
+                        <tr>
+
+                            <td>{{ loop.index }}</td>
+
+                            <td>{{ profile[0] }}</td>
+
+                            <td>{{ profile[1] }}</td>
+
+                            <td>
+
+                                <span class="badge bg-primary fs-6">
+
+                                    {{ profile[2] }}/100
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                {% if profile[3] == "Trusted" %}
+
+                                <span class="badge bg-success">
+
+                                    {{ profile[3] }}
+
+                                </span>
+
+                                {% elif profile[3] == "Medium Risk" %}
+
+                                <span class="badge bg-warning text-dark">
+
+                                    {{ profile[3] }}
+
+                                </span>
+
+                                {% else %}
+
+                                <span class="badge bg-danger">
+
+                                    {{ profile[3] }}
+
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {% if profile[3] == "Trusted" %}
+
+                                    ✅ Safe
+
+                                {% elif profile[3] == "Medium Risk" %}
+
+                                    ⚠ Needs Review
+
+                                {% else %}
+
+                                    🚨 Investigate
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Dashboard Footer -->
+
+    <div class="text-center mt-5 mb-3">
+
+        <hr>
+
+        <h5 class="text-primary">
+
+            <i class="bi bi-shield-lock-fill"></i>
+
+            AI Social Trust Detector
+
+        </h5>
+
+        <p class="text-muted">
+
+            Cyber Investigation Dashboard • Prakasam Police Hackathon 2026
+
+        </p>
+
+    </div>
+<script>
+
+// ----------------------------
+// Search Function
+// ----------------------------
+
+function searchTable() {
+
+    let input = document.getElementById("searchInput");
+
+    let filter = input.value.toUpperCase();
+
+    let table = document.getElementById("profileTable");
+
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {
+
+        let td = tr[i].getElementsByTagName("td")[1];
+
+        if (td) {
+
+            let txt = td.textContent || td.innerText;
+
+            if (txt.toUpperCase().indexOf(filter) > -1) {
+
+                tr[i].style.display = "";
+
+            } else {
+
+                tr[i].style.display = "none";
+
+            }
+
+        }
+
+    }
+
+}
+
+
+
+// ----------------------------
+// Pie Chart
+// ----------------------------
+
+const pieCtx = document.getElementById('riskChart');
+
+new Chart(pieCtx, {
+
+    type: 'pie',
+
+    data: {
+
+        labels: [
+
+            'Trusted',
+
+            'Medium Risk',
+
+            'High Risk'
+
+        ],
+
+        datasets: [{
+
+            data: [
+
+                {{ trusted }},
+
+                {{ medium }},
+
+                {{ high }}
+
+            ],
+
+            backgroundColor: [
+
+                '#198754',
+
+                '#ffc107',
+
+                '#dc3545'
+
+            ]
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+
+                position: 'bottom'
+
+            }
+
+        }
+
+    }
+
+});
+
+
+
+// ----------------------------
+// Bar Chart
+// ----------------------------
+
+const barCtx = document.getElementById('analyticsChart');
+
+new Chart(barCtx, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: [
+
+            'Trusted',
+
+            'Medium',
+
+            'High'
+
+        ],
+
+        datasets: [{
+
+            label: 'Profiles',
+
+            data: [
+
+                {{ trusted }},
+
+                {{ medium }},
+
+                {{ high }}
+
+            ],
+
+            backgroundColor: [
+
+                '#198754',
+
+                '#ffc107',
+
+                '#dc3545'
+
+            ]
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        scales: {
+
+            y: {
+
+                beginAtZero: true
+
+            }
+
+        }
+
+    }
+
+});
+
+</script>
 
 </body>
+
 </html>

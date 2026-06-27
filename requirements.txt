@@ -1,2 +1,6 @@
 Flask
 opencv-python
+reportlab
+pandas
+scikit-learn
+joblib
